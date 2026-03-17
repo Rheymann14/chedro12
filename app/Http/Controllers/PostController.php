@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Careerpost;
+use App\Models\InstitutionContact;
 use App\Models\Issuance;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
@@ -397,7 +398,9 @@ class PostController extends Controller
 
     public function contactUs()
     {
-        return Inertia::render('public/contactUs');
+        return Inertia::render('public/contactUs', [
+            'contactSettings' => InstitutionContact::current()->toContactSettings(),
+        ]);
     }
 
     public function historicalBackground()

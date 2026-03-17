@@ -12,7 +12,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User } from '@/types/dashboard';
 import { Link } from '@inertiajs/react';
-import { Award, Edit, Menu, Users } from 'lucide-react';
+import { Award, Edit, Menu, Phone, Users } from 'lucide-react';
 import React from 'react';
 
 /**
@@ -167,6 +167,23 @@ export const AdminNavigation: React.FC<AdminNavigationProps> = ({ user }) => {
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">{display(counts.headerMenus)}</div>
+                                <p className="mt-1 text-xs text-muted-foreground">Click to manage</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                )}
+
+                {user.role === 'admin' && (
+                    <Link href="/admin/contact-settings">
+                        <Card className="cursor-pointer transition-all hover:border-primary hover:shadow-lg">
+                            <CardHeader className="pb-3">
+                                <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                    <Phone className="h-4 w-4" />
+                                    Contact Settings
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">1</div>
                                 <p className="mt-1 text-xs text-muted-foreground">Click to manage</p>
                             </CardContent>
                         </Card>

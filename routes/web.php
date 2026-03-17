@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\Admin\ContactSettingsController;
 use App\Http\Controllers\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use Illuminate\Support\Facades\Route;
@@ -114,6 +115,8 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
 
         Route::get('/admin/header-menu', [PostController::class, 'headerMenuAdmin'])->name('admin.header-menu');
+        Route::get('/admin/contact-settings', [ContactSettingsController::class, 'edit'])->name('admin.contact-settings');
+        Route::put('/admin/contact-settings', [ContactSettingsController::class, 'update'])->name('admin.contact-settings.update');
     });
 
     // User CRUD routes (for authenticated users) - require manage-careerposts permission

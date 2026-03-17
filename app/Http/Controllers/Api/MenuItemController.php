@@ -4,12 +4,125 @@ namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class MenuItemController extends BaseController
 {
     private const DEFAULT_FILE = 'data/menu-items.json';
+    private const EMPTY_PAYLOAD = ['items' => []];
+
+    private function menuDisk(): Filesystem
+    {
+        return Storage::disk('local');
+    }
+
+    /**
+     * Default seeded menu items for public pages that should not render blank
+     *
+     * @return array<int, array<string, string>>
+     */
+    private function defaultItemsFor(?string $key): array
+    {
+        return match ($key) {
+            'about' => [
+                [
+                    'title' => 'Historical Background',
+                    'href' => route('historicalBackground'),
+                    'description' => "Learn about our organization's history and development",
+                ],
+                [
+                    'title' => 'Mandate',
+                    'href' => route('mandate'),
+                    'description' => 'Our official mandate and responsibilities',
+                ],
+                [
+                    'title' => 'Vision and Mission',
+                    'href' => route('visionMission'),
+                    'description' => 'Our vision and mission statement',
+                ],
+                [
+                    'title' => 'Quality Policy Statement',
+                    'href' => route('policyStatement'),
+                    'description' => 'Our commitment to quality and excellence',
+                ],
+            ],
+            'online-services' => [
+                [
+                    'title' => 'CAV Application',
+                    'href' => route('cavApplication'),
+                    'description' => 'Apply online for Certification, Authentication, and Verification (CAV).',
+                ],
+                [
+                    'title' => 'Program Evaluation Self-Assessment',
+                    'href' => 'https://portal.chedro12.com/program-assessment/',
+                    'description' => 'Submit your program evaluation self-assessment through our official portal.',
+                ],
+            ],
+            'hemis' => [
+                [
+                    'title' => 'Statistics',
+                    'href' => route('statistics'),
+                    'description' => 'Access higher education statistics, reports, and data insights.',
+                ],
+                [
+                    'title' => 'Recognized Programs',
+                    'href' => route('recognizedprograms'),
+                    'description' => 'View officially recognized programs offered by institutions.',
+                ],
+                [
+                    'title' => 'Curriculum Verification',
+                    'href' => 'https://curriculum-verification.chedro12.com/',
+                    'description' => 'Easily verify your curriculum with CHED to ensure it meets official standards.',
+                ],
+                [
+                    'title' => 'Check with CHED',
+                    'href' => 'https://checkwithched.chedro12.com/',
+                    'description' => 'Check your records',
+                ],
+            ],
+            null => [
+                [
+                    'title' => 'Issuances',
+                    'href' => 'https://ched.gov.ph/issuances/#',
+                    'description' => 'View Ched issuances.',
+                ],
+                [
+                    'title' => 'Regional Memorandum',
+                    'href' => route('regionalMemo'),
+                    'description' => 'View regional memorandums.',
+                ],
+            ],
+            default => [],
+        };
+    }
+
+    /**
+     * @param  array<int, array<string, string>>  $items
+     * @return array{items: array<int, array<string, string>>}
+     */
+    private function payloadWithGeneratedIds(array $items): array
+    {
+        return [
+            'items' => array_map(fn (array $item) => [
+                'id' => (string) Str::uuid(),
+                'title' => $item['title'],
+                'href' => $item['href'],
+                'description' => $item['description'],
+            ], $items),
+        ];
+    }
+
+    private function isDefaultEmptyPayload(string $raw): bool
+    {
+        $normalized = trim($raw);
+
+        return in_array($normalized, [
+            trim((string) json_encode(self::EMPTY_PAYLOAD, JSON_PRETTY_PRINT)),
+            trim((string) json_encode(self::EMPTY_PAYLOAD)),
+        ], true);
+    }
 
     /**
      * Ensure the JSON file exists and return decoded array
@@ -32,15 +145,39 @@ class MenuItemController extends BaseController
     private function read(?string $key = null): array
     {
         $file = $this->fileFor($key);
-        if (!Storage::exists($file)) {
-            Storage::put($file, json_encode(['items' => []], JSON_PRETTY_PRINT));
+        $disk = $this->menuDisk();
+        $defaultItems = $this->defaultItemsFor($key);
+
+        if (!$disk->exists($file)) {
+            $payload = !empty($defaultItems)
+                ? $this->payloadWithGeneratedIds($defaultItems)
+                : self::EMPTY_PAYLOAD;
+
+            $disk->put($file, json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+            return $payload;
         }
 
-        $raw = Storage::get($file);
+        $raw = $disk->get($file);
         $decoded = json_decode($raw, true);
+
         if (!is_array($decoded) || !isset($decoded['items']) || !is_array($decoded['items'])) {
-            $decoded = ['items' => []];
+            $payload = !empty($defaultItems)
+                ? $this->payloadWithGeneratedIds($defaultItems)
+                : self::EMPTY_PAYLOAD;
+
+            $this->write($payload, $key);
+
+            return $payload;
         }
+
+        if (empty($decoded['items']) && !empty($defaultItems) && $this->isDefaultEmptyPayload($raw)) {
+            $payload = $this->payloadWithGeneratedIds($defaultItems);
+            $this->write($payload, $key);
+
+            return $payload;
+        }
+
         return $decoded;
     }
 
@@ -50,7 +187,7 @@ class MenuItemController extends BaseController
     private function write(array $payload, ?string $key = null): void
     {
         $file = $this->fileFor($key);
-        Storage::put($file, json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $this->menuDisk()->put($file, json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
     /**
@@ -244,16 +381,17 @@ class MenuItemController extends BaseController
 
     private function readAppHeader(): array
     {
-        $fileExists = Storage::exists(self::APP_HEADER_FILE);
+        $disk = $this->menuDisk();
+        $fileExists = $disk->exists(self::APP_HEADER_FILE);
         
         if (!$fileExists) {
             // Initialize with default items
             $defaultItems = $this->getDefaultHeaderMenuItems();
-            Storage::put(self::APP_HEADER_FILE, json_encode(['items' => $defaultItems], JSON_PRETTY_PRINT));
+            $disk->put(self::APP_HEADER_FILE, json_encode(['items' => $defaultItems], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
             return ['items' => $defaultItems];
         }
 
-        $raw = Storage::get(self::APP_HEADER_FILE);
+        $raw = $disk->get(self::APP_HEADER_FILE);
         $decoded = json_decode($raw, true);
         if (!is_array($decoded) || !isset($decoded['items']) || !is_array($decoded['items'])) {
             $decoded = ['items' => []];
@@ -263,7 +401,7 @@ class MenuItemController extends BaseController
         if (empty($decoded['items'])) {
             $defaultItems = $this->getDefaultHeaderMenuItems();
             $decoded = ['items' => $defaultItems];
-            Storage::put(self::APP_HEADER_FILE, json_encode($decoded, JSON_PRETTY_PRINT));
+            $disk->put(self::APP_HEADER_FILE, json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         }
 
         return $decoded;
@@ -271,7 +409,7 @@ class MenuItemController extends BaseController
 
     private function writeAppHeader(array $payload): void
     {
-        Storage::put(self::APP_HEADER_FILE, json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $this->menuDisk()->put(self::APP_HEADER_FILE, json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
     public function indexAppHeader()

@@ -469,12 +469,13 @@ class PostController extends Controller
     private function getHeaderMenuCount(): int
     {
         $file = 'data/appheadMenu.json';
+        $disk = Storage::disk('local');
 
-        if (!Storage::exists($file)) {
+        if (!$disk->exists($file)) {
             return self::DEFAULT_HEADER_MENU_COUNT;
         }
 
-        $raw = Storage::get($file);
+        $raw = $disk->get($file);
         $decoded = json_decode($raw, true);
 
         if (!is_array($decoded)) {

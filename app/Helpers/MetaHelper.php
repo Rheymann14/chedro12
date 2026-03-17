@@ -2,8 +2,52 @@
 
 namespace App\Helpers;
 
+use Illuminate\Support\Str;
+
 class MetaHelper
 {
+    private static function appName(): string
+    {
+        $configuredName = trim((string) config('app.name', ''));
+
+        if ($configuredName === '' || strcasecmp($configuredName, 'Laravel') === 0) {
+            return 'CHED Portal';
+        }
+
+        return $configuredName;
+    }
+
+    private static function defaultDescription(): string
+    {
+        return 'Commission on Higher Education Regional Office XII portal and online services.';
+    }
+
+    private static function defaultImage(?string $appUrl = null): string
+    {
+        $baseUrl = rtrim($appUrl ?? config('app.url', 'http://localhost'), '/');
+
+        return $baseUrl . '/ched%20logo.png';
+    }
+
+    public static function getRouteTitle(?string $routeName): string
+    {
+        $pageTitle = match ($routeName) {
+            'home', 'dashboard' => 'CHED Portal',
+            'careerPost' => 'Career Postings',
+            'awardsCommendation' => 'Awards & Commendations',
+            'contactUs' => 'Contact Us',
+            'onlineServices' => 'Online Services',
+            'historicalBackground' => 'Historical Background',
+            'visionMission' => 'Vision and Mission',
+            'policyStatement' => 'Quality Policy Statement',
+            'recognizedprograms', 'recognized-programs.index' => 'Recognized Programs',
+            'regionalMemo' => 'Regional Memorandum',
+            default => $routeName ? Str::headline($routeName) : 'CHED Portal',
+        };
+
+        return str_contains($pageTitle, 'CHED Portal') ? $pageTitle : "{$pageTitle} | CHED Portal";
+    }
+
     /**
      * Get default meta tags
      *
@@ -19,13 +63,13 @@ class MetaHelper
         ?string $image = null,
         ?string $url = null
     ): array {
-        $appName = config('app.name', 'CHED Portal');
+        $appName = self::appName();
         $appUrl = config('app.url', 'http://localhost');
         
         return [
             'title' => $title ?? $appName,
-            'description' => $description ?? 'CHED Portal - Commission on Higher Education',
-            'image' => $image ?? $appUrl . '/img/default-og-image.png',
+            'description' => $description ?? self::defaultDescription(),
+            'image' => $image ?? self::defaultImage($appUrl),
             'url' => $url ?? $appUrl,
         ];
     }
@@ -69,7 +113,7 @@ class MetaHelper
                 $image = $baseUrl . '/storage/' . ltrim($imagePath, '/');
             }
         } else {
-            $image = $baseUrl . '/img/default-og-image.png';
+            $image = self::defaultImage($baseUrl);
         }
         
         return [
@@ -94,7 +138,7 @@ class MetaHelper
         return [
             'title' => 'Postings | CHED Portal',
             'description' => 'Browse all postings and announcements from the Commission on Higher Education',
-            'image' => $baseUrl . '/img/default-og-image.png',
+            'image' => self::defaultImage($baseUrl),
             'url' => $url ?? $baseUrl . '/postings',
         ];
     }
@@ -113,7 +157,7 @@ class MetaHelper
         return [
             'title' => 'Career Posts | CHED Portal',
             'description' => 'Browse all career opportunities and job postings from the Commission on Higher Education',
-            'image' => $baseUrl . '/img/default-og-image.png',
+            'image' => self::defaultImage($baseUrl),
             'url' => $url ?? $baseUrl . '/careerPost',
         ];
     }
@@ -132,9 +176,8 @@ class MetaHelper
         return [
             'title' => 'Awards & Commendations | CHED Portal',
             'description' => 'Browse all awards and commendations from the Commission on Higher Education',
-            'image' => $baseUrl . '/img/default-og-image.png',
+            'image' => self::defaultImage($baseUrl),
             'url' => $url ?? $baseUrl . '/awardsCommendation',
         ];
     }
 }
-

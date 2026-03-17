@@ -25,19 +25,20 @@
             }
         </style>
 
-        <title inertia>CHED Portal</title>
-        <meta property="og:title" content="{{ $page['props']['meta']['title'] ?? 'My App' }}">
-    <meta property="og:description" content="{{ $page['props']['meta']['description'] ?? '' }}">
-    <meta property="og:image" content="{{ $page['props']['meta']['image'] ?? asset('img/default-og-image.png') }}">
-    <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:type" content="website">
-    
-    
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="{{ url()->current() }}" />
-    <meta name="twitter:title" content="{{ $page['props']['meta']['title'] ?? 'My App' }}" />
-    <meta name="twitter:description" content="{{ $page['props']['meta']['description'] ?? '' }}" />
-    <meta name="twitter:image" content="{{ $page['props']['meta']['image'] ?? asset('default-og.jpg') }}" /> 
+        <title inertia>{{ $page['props']['meta']['title'] ?? 'CHED Portal' }}</title>
+        <meta name="description" content="{{ $page['props']['meta']['description'] ?? 'Commission on Higher Education Regional Office XII portal and online services.' }}">
+        <meta property="og:site_name" content="CHED Portal">
+        <meta property="og:title" content="{{ $page['props']['meta']['title'] ?? 'CHED Portal' }}">
+        <meta property="og:description" content="{{ $page['props']['meta']['description'] ?? 'Commission on Higher Education Regional Office XII portal and online services.' }}">
+        <meta property="og:image" content="{{ $page['props']['meta']['image'] ?? url('/ched%20logo.png') }}">
+        <meta property="og:url" content="{{ $page['props']['meta']['url'] ?? url()->current() }}">
+        <meta property="og:type" content="website">
+
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content="{{ $page['props']['meta']['url'] ?? url()->current() }}" />
+        <meta name="twitter:title" content="{{ $page['props']['meta']['title'] ?? 'CHED Portal' }}" />
+        <meta name="twitter:description" content="{{ $page['props']['meta']['description'] ?? 'Commission on Higher Education Regional Office XII portal and online services.' }}" />
+        <meta name="twitter:image" content="{{ $page['props']['meta']['image'] ?? url('/ched%20logo.png') }}" />
 
         <link rel="icon" href="/favicon.ico?v={{ time() }}" type="image/x-icon">
         <link rel="preconnect" href="https://fonts.bunny.net">

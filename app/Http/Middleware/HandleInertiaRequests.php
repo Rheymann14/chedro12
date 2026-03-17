@@ -37,9 +37,11 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+        $routeName = $request->route()?->getName();
 
         // Get default meta tags
         $defaultMeta = \App\Helpers\MetaHelper::getDefaultMeta(
+            title: \App\Helpers\MetaHelper::getRouteTitle($routeName),
             url: $request->url()
         );
 

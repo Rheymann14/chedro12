@@ -9,6 +9,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -36,7 +37,18 @@ export default function ContactSettingsAdmin({ contactSettings }: { contactSetti
 
     const submit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        put('/admin/contact-settings');
+
+        put('/admin/contact-settings', {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Contact details updated successfully.');
+            },
+            onError: (formErrors) => {
+                const messages = Object.values(formErrors).flat().filter(Boolean);
+
+                toast.error(messages.length > 0 ? messages.join(' ') : 'Please correct the highlighted fields and try again.');
+            },
+        });
     };
 
     return (

@@ -91,6 +91,32 @@ const isExternalUrl = (href: string | { url: string }): boolean => {
     }
 };
 
+const normalizeUrlPath = (href: string): string => {
+    if (!href) return '/';
+
+    try {
+        const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+        const url = new URL(href, base);
+        const path = url.pathname.replace(/\/+$/, '') || '/';
+
+        return path.toLowerCase().replace(/^\/public(?=\/|$)/, '') || '/';
+    } catch {
+        const path = href.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+
+        return path.toLowerCase().replace(/^\/public(?=\/|$)/, '') || '/';
+    }
+};
+
+const isActiveNavItem = (currentPath: string, href: string): boolean => {
+    const itemPath = normalizeUrlPath(href);
+
+    if (itemPath === '/') {
+        return currentPath === '/';
+    }
+
+    return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`);
+};
+
 // Convert API menu items to NavItem format
 const convertToNavItems = (apiItems: HeaderMenuItem[]): NavItem[] => {
     return apiItems
@@ -144,7 +170,7 @@ const rightNavItems: NavItem[] = [
 
 ];
 
-const activeItemStyles = 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
+const activeItemStyles = 'bg-blue-50 font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-200';
 
 interface AppHeaderProps {
     breadcrumbs?: BreadcrumbItem[];
@@ -204,6 +230,7 @@ export function AppHeader({ breadcrumbs = [], searchTerm = '', onSearchChange = 
         .some((u) => page.url.startsWith(u));
     const isPostingsPage = [postings().url, toUrl(admin.postings()), toUrl(user.postings())].filter(Boolean).some((u) => page.url.startsWith(u));
     const isDashboardPage = page.url === '/' || page.url.startsWith(toUrl(dashboard()));
+    const currentPath = normalizeUrlPath(page.url);
     return (
         <>
            
@@ -231,6 +258,7 @@ export function AppHeader({ breadcrumbs = [], searchTerm = '', onSearchChange = 
                                             {mainNavItems.map((item) => {
                                                 const href = typeof item.href === 'string' ? item.href : item.href.url;
                                                 const isExternal = isExternalUrl(item.href);
+                                                const isActive = isActiveNavItem(currentPath, href);
                                                 
                                                 if (isExternal) {
                                                     return (
@@ -246,7 +274,14 @@ export function AppHeader({ breadcrumbs = [], searchTerm = '', onSearchChange = 
                                                 }
                                                 
                                                 return (
-                                                    <Link key={item.title} href={item.href} className="flex items-center space-x-2 font-medium">
+                                                    <Link
+                                                        key={item.title}
+                                                        href={item.href}
+                                                        className={cn(
+                                                            'flex items-center space-x-2 rounded-md px-3 py-2 font-medium transition-colors',
+                                                            isActive && activeItemStyles,
+                                                        )}
+                                                    >
                                                         {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
                                                         <span>{item.title}</span>
                                                     </Link>
@@ -285,7 +320,7 @@ export function AppHeader({ breadcrumbs = [], searchTerm = '', onSearchChange = 
                                 {mainNavItems.map((item, index) => {
                                     const href = typeof item.href === 'string' ? item.href : item.href.url;
                                     const isExternal = isExternalUrl(item.href);
-                                    const isActive = !isExternal && page.url === href;
+                                    const isActive = isActiveNavItem(currentPath, href);
                                     
                                     return (
                                         <NavigationMenuItem key={index} className="relative flex h-full items-center ">
@@ -307,7 +342,7 @@ export function AppHeader({ breadcrumbs = [], searchTerm = '', onSearchChange = 
                                                         className={cn(
                                                             navigationMenuTriggerStyle(),
                                                             isActive && activeItemStyles,
-                                                            'h-9 cursor-pointer px-1 text-sm',
+                                                            'h-9 cursor-pointer px-3 text-sm transition-colors',
                                                         )}
                                                     >
                                                         {item.icon && <Icon iconNode={item.icon} className="mr-2 h-4 w-4" />}
@@ -315,7 +350,7 @@ export function AppHeader({ breadcrumbs = [], searchTerm = '', onSearchChange = 
                                                     </Link>
                                                 )}
                                                 {isActive && (
-                                                    <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>
+                                                    <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-blue-600 dark:bg-blue-300"></div>
                                                 )}
                                             </>
                                         </NavigationMenuItem>

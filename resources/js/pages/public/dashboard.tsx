@@ -150,11 +150,11 @@ export default function Dashboard() {
                 {/* Admin Navigation for all authenticated users */}
                 {user && <AdminNavigation user={user} />}
 
-                <div className="mb-6 flex justify-center">
-                    <div className="w-auto">
+                <div className="mb-6 px-4 sm:px-6">
+                    <div className="mx-auto w-full max-w-6xl">
                         {/* Carousel from shadcn */}
                         <Carousel
-                            className="h-1000px w-auto"
+                            className="w-full"
                             plugins={[autoplay.current]}
                             onMouseEnter={autoplay.current.stop}
                             onMouseLeave={autoplay.current.reset}
@@ -164,7 +164,7 @@ export default function Dashboard() {
                                     <CarouselItem>
                                         <div className="p-1">
                                             <Card>
-                                                <CardContent className="flex items-center justify-center p-4">
+                                                <CardContent className="flex min-h-[240px] items-center justify-center p-4 sm:min-h-[320px]">
                                                     <p className="text-gray-500">No images available</p>
                                                 </CardContent>
                                             </Card>
@@ -177,7 +177,7 @@ export default function Dashboard() {
                                         return (
                                             <CarouselItem key={key}>
                                                 <div className="p-1">
-                                                    <Card className="relative overflow-hidden">
+                                                    <Card className="relative overflow-hidden rounded-xl">
                                                         {/* Background image with blur */}
                                                         <div
                                                             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -190,7 +190,7 @@ export default function Dashboard() {
                                                         {/* Blur overlay */}
                                                         <div className="absolute inset-0 bg-white/20 backdrop-blur-sm" />
 
-                                                        <CardContent className="w-min-100 h-min-120 relative flex items-center justify-center">
+                                                        <CardContent className="relative flex min-h-[240px] items-center justify-center p-4 sm:min-h-[360px] md:min-h-[460px] lg:min-h-[560px]">
                                                             {status === 'error' ? (
                                                                 <div className="flex h-40 w-60 items-center justify-center rounded-lg bg-gray-200">
                                                                     <span className="text-xs text-gray-500">Image failed to load</span>
@@ -205,7 +205,7 @@ export default function Dashboard() {
                                                                     <img
                                                                         src={img}
                                                                         alt={`Posting ${index + 1}`}
-                                                                        className="h-120 w-auto items-center justify-center rounded shadow-lg"
+                                                                        className="max-h-[65vh] w-full max-w-full rounded shadow-lg object-contain sm:max-h-[70vh]"
                                                                         onLoad={() => handleImageLoad(key, setImageStatus)}
                                                                         onError={() => handleImageError(key, setImageStatus)}
                                                                     />
@@ -219,8 +219,8 @@ export default function Dashboard() {
                                     })
                                 )}
                             </CarouselContent>
-                            <CarouselPrevious />
-                            <CarouselNext />
+                            <CarouselPrevious className="left-3 top-1/2 z-20 -translate-y-1/2 bg-white/90 shadow-sm hover:bg-white" />
+                            <CarouselNext className="right-3 top-1/2 z-20 -translate-y-1/2 bg-white/90 shadow-sm hover:bg-white" />
                         </Carousel>
                     </div>
                 </div>

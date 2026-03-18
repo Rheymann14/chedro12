@@ -50,6 +50,40 @@ export const parsePostDateYmd = (value: string): string | null => {
 };
 
 /**
+ * Resolve stored media values to a browser-safe URL.
+ * Supports raw storage paths, `/storage/...`, `storage/...`, and full URLs.
+ */
+export const resolveStorageUrl = (value: string | null | undefined): string | null => {
+    const raw = value?.trim();
+
+    if (!raw) return null;
+
+    if (/^https?:\/\//i.test(raw)) {
+        try {
+            const url = new URL(raw);
+
+            if (url.pathname.startsWith('/storage/')) {
+                return `${url.pathname}${url.search}${url.hash}`;
+            }
+        } catch {
+            return raw;
+        }
+
+        return raw;
+    }
+
+    if (raw.startsWith('/storage/')) {
+        return raw;
+    }
+
+    if (raw.startsWith('storage/')) {
+        return `/${raw}`;
+    }
+
+    return `/storage/${raw.replace(/^\/+/, '')}`;
+};
+
+/**
  * Get Carousel Images from Posts
  * Extracts first image from each post for carousel display
  * 
@@ -58,8 +92,8 @@ export const parsePostDateYmd = (value: string): string | null => {
  */
 export const getCarouselImages = (posts: CareerPost[]): string[] => {
     return posts
-        .filter((post) => post.Poster && post.Poster.length > 0)
-        .map((post) => `/storage/${post.Poster![0]}`);
+        .map((post) => resolveStorageUrl(post.Poster?.[0]))
+        .filter((image): image is string => Boolean(image));
 };
 
 /**

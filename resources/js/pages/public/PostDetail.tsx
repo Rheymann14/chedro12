@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type SharedData } from '@/types';
-import { getYouTubeThumbnailFromHtml, sanitizeHtmlForDisplay } from '@/utils/dashboard';
+import { getYouTubeThumbnailFromHtml, resolveStorageUrl, sanitizeHtmlForDisplay } from '@/utils/dashboard';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { BarChart3, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -41,11 +41,17 @@ export default function PostDetail() {
         if (post.entry_type === 'awards_commendation') return 'Awards & Commendation';
         return 'Career Post';
     };
+
+    const primaryPosterUrl = resolveStorageUrl(post.Poster?.[0]);
+    const galleryPosterUrls = (post.Poster ?? [])
+        .slice(1, 10)
+        .map((image) => resolveStorageUrl(image))
+        .filter((image): image is string => Boolean(image));
     
     const metaData = props.meta || {
         title: `${post.headline} - ${getPostTypeLabel()} Detail`,
         description: post.description ? post.description.substring(0, 160) : 'View this post on CHED Portal',
-        image: post.Poster && post.Poster.length > 0 ? `/storage/${post.Poster[0]}` : '/img/default-og-image.png',
+        image: primaryPosterUrl ?? '/img/default-og-image.png',
         url: '',
     };
     const [views, setViews] = useState<number>(0);
@@ -164,13 +170,13 @@ export default function PostDetail() {
                                             {(post.Poster && post.Poster.length > 0) || getYouTubeThumbnailFromHtml(post.description) ? (
                                                 <div className="space-y-4">
                                                     {/* Primary Image */}
-                                                    {post.Poster && post.Poster.length > 0 ? (
+                                                    {primaryPosterUrl ? (
                                                         <div className="group overflow-hidden rounded-lg">
                                                             <img
-                                                                src={`/storage/${post.Poster[0]}`}
+                                                                src={primaryPosterUrl}
                                                                 alt="Primary Poster"
                                                                 className="h-auto w-full cursor-zoom-in rounded-lg object-contain transition-transform duration-300 ease-out group-hover:scale-105"
-                                                                onClick={() => openLightbox(`/storage/${post.Poster?.[0]}`)}
+                                                                onClick={() => openLightbox(primaryPosterUrl)}
                                                             />
                                                         </div>
                                                     ) : (
@@ -209,16 +215,16 @@ export default function PostDetail() {
                                                             );
                                                         })()
                                                     )}
-                                                    {post.Poster && post.Poster.length > 1 && (
+                                                    {galleryPosterUrls.length > 0 && (
                                                         <div>
                                                             <div className="grid grid-cols-3 gap-4">
-                                                                {post.Poster.slice(1, 10).map((image, index) => (
+                                                                {galleryPosterUrls.map((image, index) => (
                                                                     <div key={index} className="group overflow-hidden rounded-lg">
                                                                         <img
-                                                                            src={`/storage/${image}`}
+                                                                            src={image}
                                                                             alt={`Additional Image ${index + 2}`}
                                                                             className="h-32 w-full cursor-zoom-in rounded-lg object-cover transition-transform duration-300 ease-out group-hover:scale-105"
-                                                                            onClick={() => openLightbox(`/storage/${image}`)}
+                                                                            onClick={() => openLightbox(image)}
                                                                         />
                                                                     </div>
                                                                 ))}

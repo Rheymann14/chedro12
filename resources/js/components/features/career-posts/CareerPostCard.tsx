@@ -11,7 +11,7 @@
 
 import { Button } from '@/components/ui/button';
 import { CareerPost } from '@/types/dashboard';
-import { getYouTubeThumbnailFromHtml, sanitizeHtmlForDisplay } from '@/utils/dashboard';
+import { getYouTubeThumbnailFromHtml, resolveStorageUrl, sanitizeHtmlForDisplay } from '@/utils/dashboard';
 import React, { useMemo } from 'react';
 
 /**
@@ -39,6 +39,7 @@ interface CareerPostCardProps {
  */
 export const CareerPostCard: React.FC<CareerPostCardProps> = ({ post, onReadMore, actions }) => {
     const fallbackThumb = useMemo(() => getYouTubeThumbnailFromHtml(post.description), [post.description]);
+    const posterUrl = useMemo(() => resolveStorageUrl(post.Poster?.[0]), [post.Poster]);
     const [imageError, setImageError] = React.useState(false);
     
     return (
@@ -63,9 +64,9 @@ export const CareerPostCard: React.FC<CareerPostCardProps> = ({ post, onReadMore
                             </div>
                         </div>
                     </div>
-                ) : post.Poster && post.Poster.length > 0 && !imageError ? (
+                ) : posterUrl && !imageError ? (
                     <img
-                        src={`/storage/${post.Poster[0]}`}
+                        src={posterUrl}
                         alt={post.headline}
                         className="h-auto w-full max-w-sm rounded-lg object-contain transition-transform duration-300 ease-out group-hover:scale-105 sm:w-80"
                         style={{ willChange: 'transform' }}

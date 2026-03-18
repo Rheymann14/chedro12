@@ -5,7 +5,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Posting } from '@/types/dashboard';
-import { getYouTubeThumbnailFromHtml, sanitizeHtmlForDisplay } from '@/utils/dashboard';
+import { getYouTubeThumbnailFromHtml, resolveStorageUrl, sanitizeHtmlForDisplay } from '@/utils/dashboard';
 
 interface PostingCardProps {
     posting: Posting;
@@ -15,6 +15,7 @@ interface PostingCardProps {
 
 export const PostingCard: React.FC<PostingCardProps> = ({ posting, onReadMore, actions }) => {
     const fallbackThumb = getYouTubeThumbnailFromHtml(posting.description);
+    const posterUrl = resolveStorageUrl(posting.Poster?.[0]);
     return (
         <div className="flex flex-col gap-4 rounded-xl bg-white p-4 sm:flex-row sm:gap-6">
             <div className="group relative flex-shrink-0 overflow-hidden rounded-lg">
@@ -33,9 +34,9 @@ export const PostingCard: React.FC<PostingCardProps> = ({ posting, onReadMore, a
                             </div>
                         </div>
                     </div>
-                ) : posting.Poster && posting.Poster.length > 0 ? (
+                ) : posterUrl ? (
                     <img
-                        src={`/storage/${posting.Poster[0]}`}
+                        src={posterUrl}
                         alt={posting.headline}
                         className="h-auto w-full max-w-sm rounded-lg object-contain transition-transform duration-300 ease-out group-hover:scale-105 sm:w-80"
                     />
@@ -79,5 +80,4 @@ export const PostingCard: React.FC<PostingCardProps> = ({ posting, onReadMore, a
         </div>
     );
 };
-
 

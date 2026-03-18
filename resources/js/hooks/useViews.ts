@@ -11,7 +11,7 @@
 
 import { useEffect, useState } from 'react';
 import { getCsrfToken } from '@/utils/dashboard';
-import { API_ENDPOINTS, DASHBOARD_PAGES } from '@/constants/dashboard';
+import { API_ENDPOINTS } from '@/constants/dashboard';
 
 /**
  * Hook for tracking and retrieving page views
@@ -54,19 +54,10 @@ export const useTotalViews = (): number => {
     const [total, setTotal] = useState<number>(0);
 
     useEffect(() => {
-        const pages = Object.values(DASHBOARD_PAGES);
-
-        Promise.all(
-            pages.map((page) =>
-                fetch(`${API_ENDPOINTS.VIEWS_COUNT}?page=${encodeURIComponent(page)}`)
-                    .then((res) => res.json())
-                    .then((data) => (typeof data.count === 'number' ? data.count : 0))
-                    .catch(() => 0)
-            )
-        ).then((counts) => {
-            const sum = counts.reduce((acc, n) => acc + (Number.isFinite(n) ? n : 0), 0);
-            setTotal(sum);
-        });
+        fetch(API_ENDPOINTS.VIEWS_COUNT)
+            .then((res) => res.json())
+            .then((data) => setTotal(typeof data.count === 'number' ? data.count : 0))
+            .catch(() => setTotal(0));
     }, []);
 
     return total;

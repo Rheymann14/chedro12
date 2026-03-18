@@ -9,33 +9,31 @@ use Illuminate\Support\Facades\Log;
 
 class ViewController extends Controller
 {
+    private const TOTAL_COUNT_KEY = 'views:count:total';
+
     public function track(Request $request): JsonResponse
     {
         try {
-            $page = (string) ($request->input('page') ?? $request->query('page') ?? 'unknown');
+            $page = trim((string) ($request->input('page') ?? $request->query('page') ?? ''));
+
             if ($page === '') {
                 return response()->json(['error' => 'Missing page'], 422);
             }
 
-            $ip = $request->ip() ?? 'unknown';
-            $dayKey = now()->toDateString();
-            $seenKey = "views:seen:{$page}:{$dayKey}:{$ip}";
             $countKey = "views:count:{$page}";
+            $totalKey = self::TOTAL_COUNT_KEY;
 
-            // Only count once per IP per day
-            // Ensure counter exists with a long TTL
-            if (!Cache::has($countKey)) {
-                Cache::put($countKey, 0, now()->addDays(365));
-            }
+            $this->initializeCounter($countKey);
+            $this->initializeCounter($totalKey);
 
-            if (!Cache::has($seenKey)) {
-                Cache::put($seenKey, true, now()->addDay());
-                $newCount = Cache::increment($countKey);
-            } else {
-                $newCount = (int) (Cache::get($countKey, 0));
-            }
+            $newCount = Cache::increment($countKey);
+            $newTotal = Cache::increment($totalKey);
 
-            return response()->json(['page' => $page, 'count' => $newCount]);
+            return response()->json([
+                'page' => $page,
+                'count' => $newCount,
+                'total' => $newTotal,
+            ]);
         } catch (\Throwable $e) {
             Log::error('View track error', ['message' => $e->getMessage()]);
             return response()->json(['error' => 'failed'], 500);
@@ -44,12 +42,24 @@ class ViewController extends Controller
 
     public function count(Request $request): JsonResponse
     {
-        $page = (string) $request->query('page', 'unknown');
+        $page = trim((string) $request->query('page', ''));
+
         if ($page === '') {
-            return response()->json(['error' => 'Missing page'], 422);
+            return response()->json([
+                'page' => null,
+                'count' => (int) Cache::get(self::TOTAL_COUNT_KEY, 0),
+            ]);
         }
+
         $countKey = "views:count:{$page}";
         return response()->json(['page' => $page, 'count' => (int) Cache::get($countKey, 0)]);
+    }
+
+    private function initializeCounter(string $key): void
+    {
+        if (!Cache::has($key)) {
+            Cache::put($key, 0, now()->addDays(365));
+        }
     }
 }
 

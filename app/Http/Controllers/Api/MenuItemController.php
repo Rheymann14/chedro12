@@ -12,10 +12,120 @@ class MenuItemController extends BaseController
 {
     private const DEFAULT_FILE = 'data/menu-items.json';
     private const EMPTY_PAYLOAD = ['items' => []];
+    private const INTERNAL_ROUTE_NAMES = [
+        'home',
+        'dashboard',
+        'about',
+        'onlineServices',
+        'hemis',
+        'resources',
+        'postings',
+        'careerPost',
+        'awardsCommendation',
+        'contactUs',
+        'historicalBackground',
+        'mandate',
+        'visionMission',
+        'policyStatement',
+        'cavApplication',
+        'statistics',
+        'recognizedprograms',
+        'regionalMemo',
+        'admin.careerPost',
+        'admin.postings',
+        'admin.awardsCommendation',
+        'admin.users',
+        'admin.header-menu',
+        'admin.contact-settings',
+        'user.careerPost',
+        'user.postings',
+        'user.awardsCommendation',
+    ];
 
     private function menuDisk(): Filesystem
     {
         return Storage::disk('local');
+    }
+
+    private function localRoute(string $name): string
+    {
+        return route($name, [], false);
+    }
+
+    private function normalizeInternalPath(string $path): string
+    {
+        $normalized = '/' . ltrim(trim($path), '/');
+        $normalized = preg_replace('#^/public(?=/|$)#i', '', $normalized) ?? $normalized;
+
+        return rtrim($normalized, '/') ?: '/';
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function knownInternalPaths(): array
+    {
+        static $paths = null;
+
+        if (is_array($paths)) {
+            return $paths;
+        }
+
+        $paths = array_values(array_unique(array_map(
+            fn (string $name) => $this->normalizeInternalPath($this->localRoute($name)),
+            self::INTERNAL_ROUTE_NAMES,
+        )));
+
+        return $paths;
+    }
+
+    private function normalizeMenuHref(string $href): string
+    {
+        $href = trim($href);
+
+        if ($href === '' || str_starts_with($href, '#')) {
+            return $href;
+        }
+
+        $parts = parse_url($href);
+
+        if ($parts === false) {
+            return $href;
+        }
+
+        $scheme = strtolower((string) ($parts['scheme'] ?? ''));
+        if ($scheme !== '' && !in_array($scheme, ['http', 'https'], true)) {
+            return $href;
+        }
+
+        $path = $parts['path'] ?? $href;
+        $normalizedPath = $this->normalizeInternalPath($path);
+
+        if (!in_array($normalizedPath, $this->knownInternalPaths(), true)) {
+            return $href;
+        }
+
+        $query = isset($parts['query']) ? '?' . $parts['query'] : '';
+        $fragment = isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
+
+        return $normalizedPath . $query . $fragment;
+    }
+
+    private function normalizePayload(array $payload): array
+    {
+        if (!isset($payload['items']) || !is_array($payload['items'])) {
+            return $payload;
+        }
+
+        $payload['items'] = array_map(function (array $item) {
+            if (isset($item['href']) && is_string($item['href'])) {
+                $item['href'] = $this->normalizeMenuHref($item['href']);
+            }
+
+            return $item;
+        }, $payload['items']);
+
+        return $payload;
     }
 
     /**
@@ -29,29 +139,29 @@ class MenuItemController extends BaseController
             'about' => [
                 [
                     'title' => 'Historical Background',
-                    'href' => route('historicalBackground'),
+                    'href' => $this->localRoute('historicalBackground'),
                     'description' => "Learn about our organization's history and development",
                 ],
                 [
                     'title' => 'Mandate',
-                    'href' => route('mandate'),
+                    'href' => $this->localRoute('mandate'),
                     'description' => 'Our official mandate and responsibilities',
                 ],
                 [
                     'title' => 'Vision and Mission',
-                    'href' => route('visionMission'),
+                    'href' => $this->localRoute('visionMission'),
                     'description' => 'Our vision and mission statement',
                 ],
                 [
                     'title' => 'Quality Policy Statement',
-                    'href' => route('policyStatement'),
+                    'href' => $this->localRoute('policyStatement'),
                     'description' => 'Our commitment to quality and excellence',
                 ],
             ],
             'online-services' => [
                 [
                     'title' => 'CAV Application',
-                    'href' => route('cavApplication'),
+                    'href' => $this->localRoute('cavApplication'),
                     'description' => 'Apply online for Certification, Authentication, and Verification (CAV).',
                 ],
                 [
@@ -63,12 +173,12 @@ class MenuItemController extends BaseController
             'hemis' => [
                 [
                     'title' => 'Statistics',
-                    'href' => route('statistics'),
+                    'href' => $this->localRoute('statistics'),
                     'description' => 'Access higher education statistics, reports, and data insights.',
                 ],
                 [
                     'title' => 'Recognized Programs',
-                    'href' => route('recognizedprograms'),
+                    'href' => $this->localRoute('recognizedprograms'),
                     'description' => 'View officially recognized programs offered by institutions.',
                 ],
                 [
@@ -90,7 +200,7 @@ class MenuItemController extends BaseController
                 ],
                 [
                     'title' => 'Regional Memorandum',
-                    'href' => route('regionalMemo'),
+                    'href' => $this->localRoute('regionalMemo'),
                     'description' => 'View regional memorandums.',
                 ],
             ],
@@ -104,14 +214,14 @@ class MenuItemController extends BaseController
      */
     private function payloadWithGeneratedIds(array $items): array
     {
-        return [
+        return $this->normalizePayload([
             'items' => array_map(fn (array $item) => [
                 'id' => (string) Str::uuid(),
                 'title' => $item['title'],
                 'href' => $item['href'],
                 'description' => $item['description'],
             ], $items),
-        ];
+        ]);
     }
 
     private function isDefaultEmptyPayload(string $raw): bool
@@ -178,7 +288,13 @@ class MenuItemController extends BaseController
             return $payload;
         }
 
-        return $decoded;
+        $normalized = $this->normalizePayload($decoded);
+
+        if ($normalized !== $decoded) {
+            $this->write($normalized, $key);
+        }
+
+        return $normalized;
     }
 
     /**
@@ -187,7 +303,7 @@ class MenuItemController extends BaseController
     private function write(array $payload, ?string $key = null): void
     {
         $file = $this->fileFor($key);
-        $this->menuDisk()->put($file, json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $this->menuDisk()->put($file, json_encode($this->normalizePayload($payload), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
     /**
@@ -337,43 +453,43 @@ class MenuItemController extends BaseController
             [
                 'id' => (string) Str::uuid(),
                 'title' => 'About us',
-                'href' => route('about'),
+                'href' => $this->localRoute('about'),
                 'order' => 1,
             ],
             [
                 'id' => (string) Str::uuid(),
                 'title' => 'Online Services',
-                'href' => route('onlineServices'),
+                'href' => $this->localRoute('onlineServices'),
                 'order' => 2,
             ],
             [
                 'id' => (string) Str::uuid(),
                 'title' => 'HEMIS',
-                'href' => route('hemis'),
+                'href' => $this->localRoute('hemis'),
                 'order' => 3,
             ],
             [
                 'id' => (string) Str::uuid(),
                 'title' => 'Resources',
-                'href' => route('resources'),
+                'href' => $this->localRoute('resources'),
                 'order' => 4,
             ],
             [
                 'id' => (string) Str::uuid(),
                 'title' => 'Postings',
-                'href' => route('postings'),
+                'href' => $this->localRoute('postings'),
                 'order' => 5,
             ],
             [
                 'id' => (string) Str::uuid(),
                 'title' => 'Career Postings',
-                'href' => route('careerPost'),
+                'href' => $this->localRoute('careerPost'),
                 'order' => 6,
             ],
             [
                 'id' => (string) Str::uuid(),
                 'title' => 'Contact us',
-                'href' => route('contactUs'),
+                'href' => $this->localRoute('contactUs'),
                 'order' => 7,
             ],
         ];
@@ -404,12 +520,18 @@ class MenuItemController extends BaseController
             $disk->put(self::APP_HEADER_FILE, json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         }
 
-        return $decoded;
+        $normalized = $this->normalizePayload($decoded);
+
+        if ($normalized !== $decoded) {
+            $this->writeAppHeader($normalized);
+        }
+
+        return $normalized;
     }
 
     private function writeAppHeader(array $payload): void
     {
-        $this->menuDisk()->put(self::APP_HEADER_FILE, json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $this->menuDisk()->put(self::APP_HEADER_FILE, json_encode($this->normalizePayload($payload), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
     public function indexAppHeader()

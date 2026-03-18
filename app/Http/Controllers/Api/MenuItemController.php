@@ -501,30 +501,55 @@ class MenuItemController extends BaseController
         ];
     }
 
-    private function syncMissingDefaultHeaderItems(array $items): array
+    private function syncDefaultHeaderItems(array $items): array
     {
         $defaultItems = $this->getDefaultHeaderMenuItems();
-        $existingHrefs = collect($items)
-            ->pluck('href')
-            ->filter(fn ($href) => is_string($href) && $href !== '')
-            ->all();
+        $defaultItemsByHref = collect($defaultItems)->keyBy('href');
+        $normalizedDefaults = $defaultItemsByHref->keys()->mapWithKeys(function (string $href) {
+            return [$this->normalizeMenuHref($href) => $href];
+        });
 
-        foreach ($defaultItems as $defaultItem) {
-            if (!in_array($defaultItem['href'], $existingHrefs, true)) {
-                $items[] = [
-                    'id' => (string) Str::uuid(),
-                    'title' => $defaultItem['title'],
-                    'href' => $defaultItem['href'],
-                    'order' => count($items),
-                ];
+        $existingByDefaultHref = [];
+        $customItems = [];
+
+        foreach ($items as $item) {
+            $href = is_string($item['href'] ?? null) ? $item['href'] : '';
+            $normalizedHref = $this->normalizeMenuHref($href);
+            $defaultHref = $normalizedDefaults[$normalizedHref] ?? null;
+
+            if ($defaultHref) {
+                $existingByDefaultHref[$defaultHref] = array_merge($item, [
+                    'href' => $defaultHref,
+                ]);
+            } else {
+                $customItems[] = $item;
             }
         }
 
-        foreach ($items as $index => $item) {
-            $items[$index]['order'] = $index;
+        $syncedItems = [];
+
+        foreach ($defaultItems as $defaultItem) {
+            $href = $defaultItem['href'];
+            $existingItem = $existingByDefaultHref[$href] ?? null;
+
+            $syncedItems[] = [
+                'id' => $existingItem['id'] ?? (string) Str::uuid(),
+                'title' => $existingItem['title'] ?? $defaultItem['title'],
+                'href' => $href,
+                'order' => count($syncedItems),
+            ];
         }
 
-        return $items;
+        foreach ($customItems as $item) {
+            $syncedItems[] = [
+                'id' => $item['id'] ?? (string) Str::uuid(),
+                'title' => $item['title'] ?? '',
+                'href' => is_string($item['href'] ?? null) ? $item['href'] : '',
+                'order' => count($syncedItems),
+            ];
+        }
+
+        return $syncedItems;
     }
 
     private function readAppHeader(): array
@@ -552,7 +577,7 @@ class MenuItemController extends BaseController
             $disk->put(self::APP_HEADER_FILE, json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         }
 
-        $decoded['items'] = $this->syncMissingDefaultHeaderItems($decoded['items']);
+        $decoded['items'] = $this->syncDefaultHeaderItems($decoded['items']);
         $normalized = $this->normalizePayload($decoded);
 
         if ($normalized !== $decoded) {
@@ -653,4 +678,3 @@ class MenuItemController extends BaseController
         return response()->json(['items' => $reordered]);
     }
 }
-

@@ -97,10 +97,8 @@ export default function AwardsCommendation() {
 
     // Handle initial loading state
     React.useEffect(() => {
-        if (posts.length > 0) {
-            setIsInitialLoading(false);
-        }
-    }, [posts]);
+        setIsInitialLoading(false);
+    }, [postsData]);
 
     // Check if user can manage posts (authenticated users can manage)
     const canManage = !!auth?.user;

@@ -205,7 +205,7 @@ export default function Dashboard() {
                                                                     <img
                                                                         src={img}
                                                                         alt={`Posting ${index + 1}`}
-                                                                        className="max-h-[42vh] w-full max-w-full rounded shadow-lg object-contain sm:max-h-[50vh] md:max-h-[56vh]"
+                                                                        className="h-auto max-h-[42vh] w-auto max-w-full rounded shadow-lg object-contain sm:max-h-[50vh] md:max-h-[56vh]"
                                                                         onLoad={() => handleImageLoad(key, setImageStatus)}
                                                                         onError={() => handleImageError(key, setImageStatus)}
                                                                     />

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str as SupportStr;
 use Illuminate\Support\Str;
 
 class MenuItemController extends BaseController
@@ -98,6 +99,10 @@ class MenuItemController extends BaseController
             return $href;
         }
 
+        if ($scheme !== '' && !$this->isSameApplicationHost((string) ($parts['host'] ?? ''))) {
+            return $href;
+        }
+
         $path = $parts['path'] ?? $href;
         $normalizedPath = $this->normalizeInternalPath($path);
 
@@ -109,6 +114,66 @@ class MenuItemController extends BaseController
         $fragment = isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
 
         return $normalizedPath . $query . $fragment;
+    }
+
+    private function isSameApplicationHost(string $host): bool
+    {
+        $host = $this->normalizeHost($host);
+
+        if ($host === '') {
+            return false;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return true;
+        }
+
+        $currentHost = $this->normalizeHost((string) request()->getHost());
+        $appHost = $this->normalizeHost((string) parse_url((string) config('app.url'), PHP_URL_HOST));
+
+        return in_array($host, array_filter([$currentHost, $appHost]), true);
+    }
+
+    private function normalizeHost(string $host): string
+    {
+        return SupportStr::lower(preg_replace('/^www\./i', '', trim($host)) ?? '');
+    }
+
+    /**
+     * Repair broken externally-hosted default menu items that were previously normalized to "/".
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @param  array<int, array<string, string>>  $defaultItems
+     * @return array<int, array<string, mixed>>
+     */
+    private function repairBrokenExternalDefaultItems(array $items, array $defaultItems): array
+    {
+        $externalDefaultsByTitle = collect($defaultItems)
+            ->filter(fn (array $item) => isset($item['title'], $item['href']) && preg_match('#^https?://#i', $item['href']))
+            ->keyBy('title');
+
+        return array_map(function (array $item) use ($externalDefaultsByTitle) {
+            $title = $item['title'] ?? null;
+            $href = $item['href'] ?? null;
+
+            if (!is_string($title) || !is_string($href) || $href !== '/') {
+                return $item;
+            }
+
+            $default = $externalDefaultsByTitle->get($title);
+
+            if (!$default) {
+                return $item;
+            }
+
+            $item['href'] = $default['href'];
+
+            if (isset($default['description']) && empty($item['description'])) {
+                $item['description'] = $default['description'];
+            }
+
+            return $item;
+        }, $items);
     }
 
     private function normalizePayload(array $payload): array
@@ -286,6 +351,10 @@ class MenuItemController extends BaseController
             $this->write($payload, $key);
 
             return $payload;
+        }
+
+        if (!empty($defaultItems)) {
+            $decoded['items'] = $this->repairBrokenExternalDefaultItems($decoded['items'], $defaultItems);
         }
 
         $normalized = $this->normalizePayload($decoded);

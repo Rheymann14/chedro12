@@ -164,7 +164,7 @@ export default function Dashboard() {
                                     <CarouselItem>
                                         <div className="p-1">
                                             <Card>
-                                                <CardContent className="flex min-h-[240px] items-center justify-center p-4 sm:min-h-[320px]">
+                                                <CardContent className="flex min-h-[180px] items-center justify-center p-4 sm:min-h-[220px] md:min-h-[260px]">
                                                     <p className="text-gray-500">No images available</p>
                                                 </CardContent>
                                             </Card>
@@ -190,7 +190,7 @@ export default function Dashboard() {
                                                         {/* Blur overlay */}
                                                         <div className="absolute inset-0 bg-white/20 backdrop-blur-sm" />
 
-                                                        <CardContent className="relative flex min-h-[240px] items-center justify-center p-4 sm:min-h-[360px] md:min-h-[460px] lg:min-h-[560px]">
+                                                        <CardContent className="relative flex min-h-[180px] items-center justify-center p-3 sm:min-h-[240px] sm:p-4 md:min-h-[320px] lg:min-h-[400px]">
                                                             {status === 'error' ? (
                                                                 <div className="flex h-40 w-60 items-center justify-center rounded-lg bg-gray-200">
                                                                     <span className="text-xs text-gray-500">Image failed to load</span>
@@ -205,7 +205,7 @@ export default function Dashboard() {
                                                                     <img
                                                                         src={img}
                                                                         alt={`Posting ${index + 1}`}
-                                                                        className="max-h-[65vh] w-full max-w-full rounded shadow-lg object-contain sm:max-h-[70vh]"
+                                                                        className="max-h-[42vh] w-full max-w-full rounded shadow-lg object-contain sm:max-h-[50vh] md:max-h-[56vh]"
                                                                         onLoad={() => handleImageLoad(key, setImageStatus)}
                                                                         onError={() => handleImageError(key, setImageStatus)}
                                                                     />

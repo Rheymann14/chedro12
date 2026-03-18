@@ -163,6 +163,22 @@ const getAuthenticatedNavItems = (baseItems: NavItem[], userRole?: string): NavI
         }
     }
 
+    // Update Awards & Commendations route for authenticated users
+    const awardsIndex = items.findIndex((item) => item.title === 'Awards & Commendations');
+    if (awardsIndex !== -1) {
+        if (userRole === 'admin') {
+            items[awardsIndex] = {
+                title: 'Awards & Commendations',
+                href: admin.awardsCommendation(),
+            };
+        } else {
+            items[awardsIndex] = {
+                title: 'Awards & Commendations',
+                href: user.awardsCommendation(),
+            };
+        }
+    }
+
     return items;
 };
 

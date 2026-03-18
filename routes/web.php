@@ -11,17 +11,15 @@ use App\Http\Controllers\ViewController;
 use App\Http\Controllers\IssuanceController;
 use App\Http\Controllers\Api\MenuItemController as ApiMenuItemController;
 use App\Http\Controllers\Api\StatsController;
-use Illuminate\Support\Facades\Artisan;
-
-// --- Temporary route for storage:link ---
-// REMOVE or comment out after using for security!
-Route::get('/run', function () {
-    Artisan::call('storage:link');
-    return 'Storage link created!';
-});
-// --- End storage:link route ---
+use Illuminate\Support\Facades\Storage;
 
 // Public routes - accessible to everyone
+Route::get('/storage/{path}', function (string $path) {
+    abort_unless(Storage::disk('public')->exists($path), 404);
+
+    return Storage::disk('public')->response($path);
+})->where('path', '.*');
+
 Route::get('/', [PostController::class, 'dashboard'])->name('home');
 
 // Recognized Programs routes

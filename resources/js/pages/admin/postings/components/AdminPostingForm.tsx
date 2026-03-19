@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useObjectUrlPreview, useObjectUrlPreviews } from '@/hooks/useObjectUrlPreviews';
 import { CalendarIcon, ImageIcon, VideoIcon, X } from 'lucide-react';
 import React from 'react';
 import { compressImage, validateFileSize } from '@/utils/imageCompression';
@@ -51,6 +52,8 @@ export const AdminPostingForm: React.FC<AdminPostingFormProps> = ({
     const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
     const [imageErrors, setImageErrors] = React.useState<string[]>([]);
     const [videoError, setVideoError] = React.useState<string>('');
+    const imagePreviewUrls = useObjectUrlPreviews(data.Poster || []);
+    const videoPreviewUrl = useObjectUrlPreview(data.Video);
 
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
@@ -281,7 +284,7 @@ export const AdminPostingForm: React.FC<AdminPostingFormProps> = ({
                                     {data.Poster.map((file, index) => (
                                         <div key={`new-${index}`} className="group relative">
                                             <img
-                                                src={URL.createObjectURL(file)}
+                                                src={imagePreviewUrls[index]}
                                                 alt={`Preview ${index + 1}`}
                                                 className="h-24 w-full rounded-lg border object-cover transition-all group-hover:brightness-75"
                                             />
@@ -309,23 +312,33 @@ export const AdminPostingForm: React.FC<AdminPostingFormProps> = ({
                         </Label>
 
                         {data.Video && (
-                            <div className="group relative inline-block">
-                                <div className="flex items-center gap-3 rounded-lg border bg-muted/50 p-3">
-                                    <VideoIcon className="h-5 w-5 text-muted-foreground" />
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium">{data.Video.name}</p>
-                                        <p className="text-xs text-muted-foreground">{(data.Video.size / 1024 / 1024).toFixed(2)} MB</p>
+                            <div className="space-y-3">
+                                {videoPreviewUrl && (
+                                    <video
+                                        src={videoPreviewUrl}
+                                        controls
+                                        preload="metadata"
+                                        className="max-h-72 w-full rounded-lg border bg-black"
+                                    />
+                                )}
+                                <div className="group relative inline-block">
+                                    <div className="flex items-center gap-3 rounded-lg border bg-muted/50 p-3">
+                                        <VideoIcon className="h-5 w-5 text-muted-foreground" />
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium">{data.Video.name}</p>
+                                            <p className="text-xs text-muted-foreground">{(data.Video.size / 1024 / 1024).toFixed(2)} MB</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setData('Video', null as any);
+                                                setVideoError('');
+                                            }}
+                                            className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-destructive hover:text-white"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setData('Video', null as any);
-                                            setVideoError('');
-                                        }}
-                                        className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-destructive hover:text-white"
-                                    >
-                                        <X className="h-4 w-4" />
-                                    </button>
                                 </div>
                             </div>
                         )}

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useObjectUrlPreviews } from '@/hooks/useObjectUrlPreviews';
 import { CalendarIcon, ImageIcon, X } from 'lucide-react';
 import React from 'react';
 import { compressImage, validateFileSize } from '@/utils/imageCompression';
@@ -50,6 +51,7 @@ export const AdminCareerPostForm: React.FC<AdminCareerPostFormProps> = ({
     const [submitted, setSubmitted] = React.useState(false);
     const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
     const [imageErrors, setImageErrors] = React.useState<string[]>([]);
+    const imagePreviewUrls = useObjectUrlPreviews(data.Poster || []);
 
     const handleLocalSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -78,10 +80,12 @@ export const AdminCareerPostForm: React.FC<AdminCareerPostFormProps> = ({
 
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
-        const totalImages = existingImages.length + files.length;
+        if (files.length === 0) return;
+
+        const totalImages = existingImages.length + (data.Poster?.length || 0) + files.length;
         
         if (totalImages > 10) {
-            setImageErrors([`Maximum 10 images allowed. You currently have ${existingImages.length} images.`]);
+            setImageErrors([`Maximum 10 images allowed. You currently have ${existingImages.length + (data.Poster?.length || 0)} images.`]);
             return;
         }
 
@@ -110,6 +114,8 @@ export const AdminCareerPostForm: React.FC<AdminCareerPostFormProps> = ({
         if (compressedFiles.length > 0) {
             setData('Poster', [...(data.Poster || []), ...compressedFiles] as any);
         }
+
+        e.target.value = '';
     };
 
     return (
@@ -296,7 +302,7 @@ export const AdminCareerPostForm: React.FC<AdminCareerPostFormProps> = ({
                                     {data.Poster.map((file, index) => (
                                         <div key={`new-${index}`} className="group relative">
                                             <img
-                                                src={URL.createObjectURL(file)}
+                                                src={imagePreviewUrls[index]}
                                                 alt={`Preview ${index + 1}`}
                                                 className="h-24 w-full rounded-lg border object-cover transition-all group-hover:brightness-75"
                                             />

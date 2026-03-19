@@ -127,6 +127,23 @@ const convertToNavItems = (apiItems: HeaderMenuItem[]): NavItem[] => {
         }));
 };
 
+const moveNavItemAfter = (items: NavItem[], titleToMove: string, afterTitle: string): NavItem[] => {
+    const sourceIndex = items.findIndex((item) => item.title === titleToMove);
+    const targetIndex = items.findIndex((item) => item.title === afterTitle);
+
+    if (sourceIndex === -1 || targetIndex === -1) {
+        return items;
+    }
+
+    const reorderedItems = [...items];
+    const [movedItem] = reorderedItems.splice(sourceIndex, 1);
+    const updatedTargetIndex = reorderedItems.findIndex((item) => item.title === afterTitle);
+
+    reorderedItems.splice(updatedTargetIndex + 1, 0, movedItem);
+
+    return reorderedItems;
+};
+
 // Navigation items for authenticated users (update routes for Postings and Career Postings)
 const getAuthenticatedNavItems = (baseItems: NavItem[], userRole?: string): NavItem[] => {
     const items = [...baseItems];
@@ -230,7 +247,11 @@ export function AppHeader({ breadcrumbs = [], searchTerm = '', onSearchChange = 
     const baseNavItems = headerMenuItems.length > 0 ? convertToNavItems(headerMenuItems) : defaultNavItems;
 
     // Get navigation items based on authentication status
-    const mainNavItems = auth?.user ? getAuthenticatedNavItems(baseNavItems, auth.user.role) : baseNavItems;
+    const mainNavItems = moveNavItemAfter(
+        auth?.user ? getAuthenticatedNavItems(baseNavItems, auth.user.role) : baseNavItems,
+        'About us',
+        'Contact us',
+    );
 
     const toUrl = (value: unknown): string => {
         if (typeof value === 'string') return value;

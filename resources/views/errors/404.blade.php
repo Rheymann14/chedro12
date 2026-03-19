@@ -1,181 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Page Not Found | CHED Portal</title>
     <meta name="robots" content="noindex">
-    <style>
-        :root {
-            color-scheme: light;
-            --page-bg: #f4f7fb;
-            --card-bg: #ffffff;
-            --text: #12315b;
-            --muted: #5b6b82;
-            --border: #d8e2f0;
-            --primary: #0b57d0;
-            --primary-dark: #0845a4;
-            --shadow: 0 22px 60px rgba(13, 42, 84, 0.12);
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background:
-                radial-gradient(circle at top left, rgba(11, 87, 208, 0.08), transparent 32%),
-                radial-gradient(circle at bottom right, rgba(255, 206, 61, 0.18), transparent 28%),
-                var(--page-bg);
-            color: var(--text);
-        }
-
-        .shell {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-        }
-
-        .card {
-            width: min(100%, 680px);
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            box-shadow: var(--shadow);
-            padding: 40px 32px;
-            text-align: center;
-        }
-
-        .logo {
-            width: 88px;
-            height: 88px;
-            object-fit: contain;
-            margin-bottom: 20px;
-        }
-
-        .eyebrow {
-            display: inline-block;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--primary);
-            margin-bottom: 12px;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: clamp(32px, 6vw, 54px);
-            line-height: 1;
-        }
-
-        h2 {
-            margin: 14px 0 10px;
-            font-size: clamp(20px, 3vw, 28px);
-            line-height: 1.2;
-        }
-
-        p {
-            margin: 0 auto;
-            max-width: 520px;
-            font-size: 16px;
-            line-height: 1.7;
-            color: var(--muted);
-        }
-
-        .actions {
-            margin-top: 28px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            justify-content: center;
-        }
-
-        .button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 172px;
-            padding: 12px 18px;
-            border-radius: 999px;
-            font-size: 15px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-        }
-
-        .button-primary {
-            background: var(--primary);
-            color: #fff;
-            border: 1px solid var(--primary);
-        }
-
-        .button-primary:hover {
-            background: var(--primary-dark);
-            border-color: var(--primary-dark);
-            transform: translateY(-1px);
-        }
-
-        .button-secondary {
-            background: #fff;
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
-
-        .button-secondary:hover {
-            border-color: #b8c7db;
-            transform: translateY(-1px);
-        }
-
-        .footer-note {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #75849a;
-        }
-
-        @media (max-width: 640px) {
-            .card {
-                padding: 32px 22px;
-                border-radius: 20px;
-            }
-
-            .logo {
-                width: 76px;
-                height: 76px;
-            }
-
-            .actions {
-                flex-direction: column;
-            }
-
-            .button {
-                width: 100%;
-            }
-        }
-    </style>
+    <title>Page Not Found | CHED Portal</title>
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
+    @vite(['resources/css/app.css'])
 </head>
-<body>
-    <main class="shell">
-        <section class="card" aria-labelledby="error-title">
-            <img class="logo" src="{{ asset('chedlogo.png') }}" alt="CHED logo">
-            <div class="eyebrow">CHED Portal</div>
-            <h1>404</h1>
-            <h2 id="error-title">Page not found</h2>
-            <p>
-                The page you requested is unavailable or may have been moved. Please return to the CHED Regional Office XII portal and continue from there.
-            </p>
+<body class="min-h-screen overflow-x-hidden bg-slate-100 font-sans text-slate-900 antialiased">
+    <main class="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.16),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(250,204,21,0.22),_transparent_26%),linear-gradient(180deg,_#f8fbff_0%,_#eef4ff_100%)]"></div>
+        <div class="absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-blue-200/30 blur-3xl"></div>
+        <div class="absolute bottom-10 right-10 h-40 w-40 rounded-full bg-amber-200/40 blur-3xl"></div>
 
-            <div class="actions">
-                <a class="button button-primary" href="{{ url('/') }}">Go to homepage</a>
-                <a class="button button-secondary" href="javascript:history.back()">Go back</a>
+        <section class="relative w-full max-w-5xl overflow-hidden rounded-[32px] border border-white/70 bg-white/90 shadow-[0_30px_90px_rgba(15,23,42,0.14)] backdrop-blur">
+            <div class="grid items-center gap-0 lg:grid-cols-[0.95fr,1.05fr]">
+                <div class="relative flex h-full items-center justify-center overflow-hidden bg-[linear-gradient(160deg,_rgba(30,64,175,0.98),_rgba(37,99,235,0.88)_60%,_rgba(251,191,36,0.58))] px-8 py-12 sm:px-10 sm:py-14">
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.28),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(15,23,42,0.25),_transparent_38%)]"></div>
+                    <div class="relative flex max-w-sm flex-col items-center text-center text-white">
+                        <div class="mb-6 flex h-28 w-28 items-center justify-center rounded-[28px] bg-white/16 ring-1 ring-white/30 backdrop-blur">
+                            <img src="{{ asset('chedlogo.png') }}" alt="CHED logo" class="h-20 w-20 object-contain drop-shadow-lg">
+                        </div>
+                        <p class="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-blue-100">CHED Portal</p>
+                        <h1 class="text-6xl font-semibold tracking-tight sm:text-7xl">404</h1>
+                        <p class="mt-4 text-sm leading-7 text-blue-50/90 sm:text-base">
+                            The page you were trying to open could not be found.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="px-8 py-10 sm:px-10 sm:py-12 lg:px-12">
+                    <div class="mx-auto max-w-xl text-center lg:text-left">
+                        <span class="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-blue-700">
+                            Regional Office XII
+                        </span>
+                        <h2 class="mt-5 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+                            Page not found
+                        </h2>
+                        <p class="mt-4 text-base leading-8 text-slate-600 sm:text-lg">
+                            The link may be outdated, unavailable, or typed incorrectly. Return to the portal homepage or go back to the previous page and continue browsing.
+                        </p>
+
+                        <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
+                            <a
+                                href="{{ url('/') }}"
+                                class="inline-flex min-w-44 items-center justify-center rounded-full bg-blue-700 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-800"
+                            >
+                                Go to homepage
+                            </a>
+                            <a
+                                href="javascript:history.back()"
+                                class="inline-flex min-w-44 items-center justify-center rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                            >
+                                Go back
+                            </a>
+                        </div>
+
+                        <div class="mt-8 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-sm leading-7 text-slate-600">
+                            <p class="font-semibold text-slate-800">Commission on Higher Education Regional Office XII</p>
+                            <p>If you reached this page from a saved bookmark or shared link, the address may have changed.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <div class="footer-note">Commission on Higher Education Regional Office XII</div>
         </section>
     </main>
 </body>

@@ -23,18 +23,12 @@
                 The page you are looking for does not exist or may have been moved.
             </p>
 
-            <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <div class="mt-8">
                 <a
                     href="{{ url('/') }}"
                     class="inline-flex items-center justify-center rounded-full bg-blue-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-800"
                 >
                     Go to homepage
-                </a>
-                <a
-                    href="javascript:history.back()"
-                    class="inline-flex items-center justify-center rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                >
-                    Go back
                 </a>
             </div>
         </section>
